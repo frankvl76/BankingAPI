@@ -10,8 +10,12 @@ namespace Banking.DTO.Transactions
     {
 
         public ObjectId Id { get; set; }
+        [JsonProperty("From Account")]
+        public string MyAccount { get; set; }
         [JsonProperty("Recipient")]
         public string ToName { get; set; }
+        [JsonProperty("To Account")]
+        public string ToAccount { get; set; }
         [JsonProperty("Currency")]
         public string Currency { get; set; }
         [JsonProperty("Amount")]

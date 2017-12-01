@@ -7,7 +7,7 @@ namespace Banking.BusinessServices.TransactionServices
 {
     public interface IFixedTransactionService
     {
-        Task<IEnumerable<TransactionOverviewDTO>> GetFixedTransactions(DateTime currentDate);
+        Task<IEnumerable<TransactionOverviewDTO>> GetFixedTransactions(DateTime currentDate, string accountNumber);
         Task<IEnumerable<TransactionOverviewDTO>> GetFixedCharges(DateTime currentDate);
         Task AddFixedTransaction(FixedTransactionCreateDTO transaction);
     }

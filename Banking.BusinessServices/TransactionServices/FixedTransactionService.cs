@@ -43,24 +43,42 @@ namespace Banking.BusinessServices.TransactionServices
         /// </summary>
         /// <param name="currentDate">DateTime object containing month</param>
         /// <returns>List of fixed transactions</returns>
-        public async Task<IEnumerable<TransactionOverviewDTO>> GetFixedTransactions(DateTime currentDate)
+        public async Task<IEnumerable<TransactionOverviewDTO>> GetFixedTransactions(DateTime currentDate, string accountNumber)
         {
             var result = new List<Transaction>();
-            var transactions = await _transactionRepository.FindAll(t => t.DebitCredit.ToUpper() == "D"
+            IEnumerable<Transaction> transactions;
+            
+            if (string.IsNullOrEmpty(accountNumber))
+                transactions = await _transactionRepository.FindAll(t => t.DebitCredit.ToUpper() == "D"
+                                                                      && t.TransactionDate_1 > DateTime.Now.AddDays(-90));
+            else
+                transactions = await _transactionRepository.FindAll(t => t.MyAccount == accountNumber
+                                                                      && t.DebitCredit.ToUpper() == "D"
                                                                       && t.TransactionDate_1 > DateTime.Now.AddDays(-90));
 
-            var fixedTransactions = await _fixedRepository.FindAll(t => true);
+            IEnumerable<FixedTransaction> fixedTransactions;
+            if (string.IsNullOrEmpty(accountNumber))
+                fixedTransactions = await _fixedRepository.FindAll(t => true);
+            else
+                fixedTransactions = await _fixedRepository.FindAll(t => t.MyAccount == accountNumber);
 
             // Add all transactions that are fixed transactions
-            foreach(var transaction in transactions)
+            foreach (var transaction in transactions)
             {
                 if (fixedTransactions.Any(t => t.MyAccount == transaction.MyAccount && t.ToAccount == transaction.ToAccount))
                     result.Add(transaction);                
             }
 
             // Add all db-transactions 
-            var dbTransactions = await _transactionRepository.FindAll(t => t.DebitCredit.ToUpper() == "D"
-                                                                      && t.TypeOfTransaction.ToLower() == "db"
+            IEnumerable<Transaction> dbTransactions;
+            if (string.IsNullOrEmpty(accountNumber))
+                dbTransactions = await _transactionRepository.FindAll(t => t.DebitCredit.ToUpper() == "D"
+                                                                      && (t.TypeOfTransaction.ToLower() == "db" || t.TypeOfTransaction.ToLower() == "dv")
+                                                                      && t.TransactionDate_1 > DateTime.Now.AddDays(-90));
+            else
+                dbTransactions = await _transactionRepository.FindAll(t => t.DebitCredit.ToUpper() == "D"
+                                                                      && t.MyAccount == accountNumber
+                                                                      && (t.TypeOfTransaction.ToLower() == "db" || t.TypeOfTransaction.ToLower() == "dv")
                                                                       && t.TransactionDate_1 > DateTime.Now.AddDays(-90));
 
             result.AddRange(dbTransactions);
@@ -86,7 +104,7 @@ namespace Banking.BusinessServices.TransactionServices
         /// <returns>List of fixed charges</returns>
         public async Task<IEnumerable<TransactionOverviewDTO>> GetFixedCharges(DateTime currentDate)
         {
-            var transactions = await _transactionRepository.FindAll(t => (t.TypeOfTransaction == "ei"  || t.TypeOfTransaction == "db")
+            var transactions = await _transactionRepository.FindAll(t => (t.TypeOfTransaction == "ei"  || t.TypeOfTransaction == "db" || t.TypeOfTransaction == "IC")
                                                                     && !t.ToName.ToLower().Contains("paypal")
                                                                     && t.DebitCredit.ToUpper() == "D"
                                                                     && !t.ToName.ToLower().Contains("tls")                                                                    

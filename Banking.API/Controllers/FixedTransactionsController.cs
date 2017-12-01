@@ -27,7 +27,13 @@ namespace Banking.API.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            return Ok(await _fixedTransactionService.GetFixedTransactions(DateTime.Now));
+            return Ok(await _fixedTransactionService.GetFixedTransactions(DateTime.Now, string.Empty));
+        }
+
+        [HttpGet("{accountNumber}")]
+        public async Task<IActionResult> Get(string accountNumber)
+        {
+            return Ok(await _fixedTransactionService.GetFixedTransactions(DateTime.Now, accountNumber));
         }
 
         [HttpGet("FixedCharges")]
